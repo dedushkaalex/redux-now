@@ -1,0 +1,20 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.app {
+  margin: 0 auto;
+  max-width: 1200px;
+  padding: 0 12px;
+  margin-top: 20px;
+}
+
+button {
+  outline: none;
+  border: none;
+  padding: 2px 16px;
+  border-radius: 10px;
+  background: #8480de;
+}
