@@ -176,7 +176,7 @@ counters/
 │─── counters.slice.ts
 │─── counters.tsx
 
-# Избавляемся от бойлерплейта в лице @redux/toolkit
+## Избавляемся от бойлерплейта в лице @redux/toolkit
 
 Надо как-то избавиться от бойлерплейта, а именно - свич кейсы в редюсерах, постоянное описание типов экшенов, иммутабельные обновления от деструктуризации
 
@@ -190,4 +190,134 @@ export const usersReducer = (
   switch (action.type) {
   }
 };
+```
+
+Это два равноправных подхода
+-│─ _**createReducer()**_ - ближе к базовому редаксу
+-│─ _**createSlice()**_ - еще сильнее уменьшит бойлерплейт
+
+### createReducer
+
+Если используем его нам нужно использовать **createAction** - создает экшены и **createReducer**
+
+```js
+// Создание экшенов - в generic передаем payload
+export const incrementAction = createAction<{
+  counterId: CounterId;
+}>("counters/increment");
+
+export const decrementAction = createAction<{
+  counterId: CounterId;
+}>("counters/decrement");
+
+// Usage
+ onClick={() => dispatch(incrementAction({ counterId }))}
+
+// Либо с использованием bindActionCreators
+  const dispatch = useAppDispatch();
+
+  const actions = bindActionCreators({
+    incrementAction,
+    decrementAction
+  }, dispatch)
+
+  onClick={() => actions.incrementAction({ counterId })}
+
+  // Перепишем редюсер
+export const countersReducer = createReducer(
+  initialCountersState,
+  (builder) => {
+    builder.addCase(incrementAction, (state, action) => {
+      const { counterId } = action.payload;
+
+      if (!state[counterId]) {
+        state[counterId] = initialCounterState;
+        return state;
+      }
+      state[counterId].counter += 1;
+    });
+    builder.addCase(decrementAction, (state, action) => {
+      const { counterId } = action.payload;
+
+      if (!state[counterId]) {
+        state[counterId] = initialCounterState;
+        return state;
+      }
+
+      state[counterId].counter -= 1;
+    });
+  }
+);
+
+```
+
+### Как работает immer, который помогает нам избавиться от бойлерплейта в виде деструктуризации
+
+Перехватывает при помощи прокси мутабельные изменения и запоминает, далее все обращения, которые мы сделали к нашему состоянию и когда все запомнил берет и превращает мутабельные в реальные имутабельные изменения - можно почитать в документации
+**WritebleDraft** - говорит нам, что под капотом immer, и мы можем писать "мутабельно"
+![alt text](images/image-9.png)
+![alt text](images/image-8.png)
+
+## createSlice - самый актуальный способ разбивать редюсер на кусочки
+
+```js
+Создаем слайс
+export const usersSlice = createSlice({
+  name: "users",
+  initialState: initialUsersState,
+  selectors: {
+    selectSelectedUserId: (state) => state.selectedUserId,
+    selectSortedUsers: createSelector(
+      (state: UsersState) => state.ids,
+      (state: UsersState) => state.entities,
+      (_: UsersState, sort: "asc" | "desc") => sort,
+      (ids, entities, sort) =>
+        ids
+          .map((id) => entities[id])
+          .sort((a, b) => {
+            if (sort === "asc") {
+              return a.name.localeCompare(b.name);
+            } else {
+              return b.name.localeCompare(a.name);
+            }
+          })
+    ),
+  },
+  reducers: {
+    selected: (state, action: PayloadAction<{ userId: UserId }>) => {
+      const { userId } = action.payload;
+      state.selectedUserId = userId;
+    },
+    selectRemove: (state) => {
+      state.selectedUserId = undefined;
+    },
+    stored: (state, action: PayloadAction<{ users: User[] }>) => {
+      const { users } = action.payload;
+
+      state.entities = users.reduce((acc, user) => {
+        acc[user.id] = user;
+        return acc;
+      }, {} as Record<UserId, User>);
+
+      state.ids = users.map((user) => user.id);
+    },
+  },
+});
+
+
+// Добавляем к корневому редюсеру
+
+export const store = configureStore({
+  reducer: {
+    counters: countersReducer,
+    [usersSlice.name]: usersSlice.reducer,
+  },
+});
+
+// Используем экшены
+ const dispatch = useAppDispatch();
+
+  const handleUserClick = () => {
+    dispatch(usersSlice.actions.selected({ userId }));
+  };
 ```
