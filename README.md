@@ -182,7 +182,7 @@ counters/
 
 На данный момент редюсеры как на примере кода ниже никто не пишет
 
-```js
+```
 export const usersReducer = (
   state = initialUsersState,
   action: Action
