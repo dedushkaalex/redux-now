@@ -1,65 +1,18 @@
-import { useState } from "react";
+import { memo, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../store";
-import {
-  selectSelectedUserId,
-  selectSortedUsers,
-  User,
-  UserId,
-  UserRemoveSelectedAction,
-  UserSelectedAction,
-} from "./users.slice";
+import { UserId, usersSlice } from "./users.slice";
 import "./usersList.css";
 
 export function UsersList() {
   const [sortType, setSortType] = useState<"asc" | "desc">("asc");
 
   const sortedUsers = useAppSelector((state) =>
-    selectSortedUsers(state, sortType)
+    usersSlice.selectors.selectSortedUsers(state, sortType)
   );
 
-  const selectedUserId = useAppSelector(selectSelectedUserId);
-  // const entities = useAppSelector((state) => {
-
-  //   return state.users.entities;
-  // });
-
-  // const selectedUser = selectedUserId ? entities[selectedUserId] : undefined;
-
-  // ООчень плохо. ‼️🔴 Будет лагать
-  // const sortedUsers = useAppSelector((state) =>
-  //   state.users.ids
-  //     .map((id) => entities[id])
-  //     .sort((a, b) =>
-  //       sortType === "asc"
-  //         ? a.name.localeCompare(b.name)
-  //         : b.name.localeCompare(a.name)
-  //     )
-  // );
-
-  // Или так
-  // const selectSortedUsers = createAppSelector(
-  //   (state: AppState) => state.users.ids,
-  //   (state: AppState) => state.users.entities,
-  //   (_: AppState, sort: "asc" | "desc") => sort,
-  //   (ids, entities, sort) =>
-  //     ids
-  //       .map((id) => entities[id])
-  //       .sort((a, b) => {
-  //         if (sort === "asc") {
-  //           return a.name.localeCompare(b.name);
-  //         } else {
-  //           return b.name.localeCompare(a.name);
-  //         }
-  //       })
-  // );
-
-  // const sortedUsers = ids
-  //   .map((id) => entities[id])
-  //   .sort((a, b) =>
-  //     sortType === "asc"
-  //       ? a.name.localeCompare(b.name)
-  //       : b.name.localeCompare(a.name)
-  //   );
+  const selectedUserId = useAppSelector(
+    usersSlice.selectors.selectSelectedUserId
+  );
 
   return (
     <div className="users-container">
@@ -75,7 +28,7 @@ export function UsersList() {
           </div>
           <ul className="user-items">
             {sortedUsers.map((user) => (
-              <UserListItem key={user.id} user={user} />
+              <UserListItem userId={user.id} key={user.id} />
             ))}
           </ul>
         </div>
@@ -86,30 +39,31 @@ export function UsersList() {
   );
 }
 
-function UserListItem({ user }: { user: User }) {
+const UserListItem = memo(function UserListItem({
+  userId,
+}: {
+  userId: UserId;
+}) {
+  const user = useAppSelector((state) => state.users.entities[userId]);
   const dispatch = useAppDispatch();
+
   const handleUserClick = () => {
-    dispatch({
-      type: "userSelected",
-      payload: { userId: user.id },
-    } satisfies UserSelectedAction);
+    dispatch(usersSlice.actions.selected({ userId }));
   };
+
   return (
     <li className="user-item" onClick={handleUserClick}>
       <span>{user.name}</span>
     </li>
   );
-}
+});
 
 function SelectedUser({ userId }: { userId: UserId }) {
   const user = useAppSelector((state) => state.users.entities[userId]);
-
   const dispatch = useAppDispatch();
 
   const handleBackButtonClick = () => {
-    dispatch({
-      type: "userRemoveSelected",
-    } satisfies UserRemoveSelectedAction);
+    dispatch(usersSlice.actions.selectRemove());
   };
 
   return (
