@@ -1,0 +1,24 @@
+{
+  "users": [
+    {
+      "id": "user1",
+      "name": "John",
+      "description": "lorem1"
+    },
+    {
+      "id": "user2",
+      "name": "Alex",
+      "description": "middle high power charge"
+    },
+    {
+      "id": "user3",
+      "name": "Mattew",
+      "description": "lou c"
+    },
+    {
+      "id": "user4",
+      "name": "Salou",
+      "description": "Chifa chiga gig"
+    }
+  ]
+}

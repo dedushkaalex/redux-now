@@ -1,10 +1,18 @@
-import { memo, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../store";
+import { fetchUsers } from "./model/fetch-users";
 import { UserId, usersSlice } from "./users.slice";
 import "./usersList.css";
 
 export function UsersList() {
   const [sortType, setSortType] = useState<"asc" | "desc">("asc");
+  const dispatch = useAppDispatch();
+  // const appStore = useAppStore();
+
+  useEffect(() => {
+    dispatch(fetchUsers);
+    // fetchUsers(appStore.dispatch, appStore.getState);
+  }, [dispatch]);
 
   const sortedUsers = useAppSelector((state) =>
     usersSlice.selectors.selectSortedUsers(state, sortType)
