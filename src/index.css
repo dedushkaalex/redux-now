@@ -18,3 +18,10 @@ button {
   border-radius: 10px;
   background: #8480de;
 }
+
+header {
+  display: flex;
+  padding: 4px 0;
+  gap: 16px;
+
+}

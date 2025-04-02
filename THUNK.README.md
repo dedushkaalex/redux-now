@@ -195,3 +195,35 @@ const dispatch = useAppDispatch();
 
 dispatch(fetchUser("12345"));
 ```
+
+## Типизация санков
+
+```js
+export type AppThunk = ThunkAction<1, 2, 3, 4>
+1 - определяет возвращаемое значение санка
+2 - с каким состоянием будет работать санк
+3 - тип экстраАргумента
+4 - UnknownAction
+
+// далее применяем
+
+export const fetchUsers =
+  (): AppThunk =>
+  (dispatch, getState, { api }) => {
+    const isIdle = usersSlice.selectors.selectIsFetchUserIdle(getState());
+    if (!isIdle) return;
+
+    dispatch(usersSlice.actions.fetchUsersPending());
+    api
+      .getUsers()
+      .then((users) => {
+        dispatch(usersSlice.actions.fetchUsersSuccess({ users }));
+        console.log("отработал диспач из параллельного фечинга");
+      })
+      .catch(() => {
+        dispatch(usersSlice.actions.fetchUsersFailed());
+      });
+  };
+
+  // для закрепления extraArguments добавим роутер в санк
+```

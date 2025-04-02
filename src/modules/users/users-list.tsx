@@ -1,4 +1,5 @@
 import { memo, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store";
 import { fetchUsers } from "./model/fetch-users";
 import { UserId, usersSlice } from "./users.slice";
@@ -10,7 +11,7 @@ export function UsersList() {
   // const appStore = useAppStore();
 
   useEffect(() => {
-    dispatch(fetchUsers);
+    dispatch(fetchUsers());
     // fetchUsers(appStore.dispatch, appStore.getState);
   }, [dispatch]);
 
@@ -18,31 +19,23 @@ export function UsersList() {
     usersSlice.selectors.selectSortedUsers(state, sortType)
   );
 
-  const selectedUserId = useAppSelector(
-    usersSlice.selectors.selectSelectedUserId
-  );
-
   return (
     <div className="users-container">
-      {!selectedUserId ? (
-        <div className="user-list">
-          <div className="sort-buttons">
-            <button onClick={() => setSortType("asc")} className="button">
-              Asc
-            </button>
-            <button onClick={() => setSortType("desc")} className="button">
-              Desc
-            </button>
-          </div>
-          <ul className="user-items">
-            {sortedUsers.map((user) => (
-              <UserListItem userId={user.id} key={user.id} />
-            ))}
-          </ul>
+      <div className="user-list">
+        <div className="sort-buttons">
+          <button onClick={() => setSortType("asc")} className="button">
+            Asc
+          </button>
+          <button onClick={() => setSortType("desc")} className="button">
+            Desc
+          </button>
         </div>
-      ) : (
-        <SelectedUser userId={selectedUserId} />
-      )}
+        <ul className="user-items">
+          {sortedUsers.map((user) => (
+            <UserListItem userId={user.id} key={user.id} />
+          ))}
+        </ul>
+      </div>
     </div>
   );
 }
@@ -53,10 +46,10 @@ const UserListItem = memo(function UserListItem({
   userId: UserId;
 }) {
   const user = useAppSelector((state) => state.users.entities[userId]);
-  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
 
   const handleUserClick = () => {
-    dispatch(usersSlice.actions.selected({ userId }));
+    navigate(userId, { relative: "path" });
   };
 
   return (
@@ -65,22 +58,3 @@ const UserListItem = memo(function UserListItem({
     </li>
   );
 });
-
-function SelectedUser({ userId }: { userId: UserId }) {
-  const user = useAppSelector((state) => state.users.entities[userId]);
-  const dispatch = useAppDispatch();
-
-  const handleBackButtonClick = () => {
-    dispatch(usersSlice.actions.selectRemove());
-  };
-
-  return (
-    <div className="selected-user">
-      <button onClick={handleBackButtonClick} className="button">
-        Back
-      </button>
-      <h2 className="user-title">{user.name}</h2>
-      <p className="user-description">{user.description}</p>
-    </div>
-  );
-}

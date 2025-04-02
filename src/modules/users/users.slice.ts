@@ -20,22 +20,22 @@ export const initialUsersList: User[] = Array.from(
 type UsersState = {
   entities: Record<UserId, User>;
   ids: UserId[];
-  selectedUserId: UserId | undefined;
   fetchUsersStatus: "idle" | "pending" | "success" | "failed";
+  fetchUserStatus: "idle" | "pending" | "success" | "failed";
 };
 
 const initialUsersState: UsersState = {
   entities: {},
   ids: [],
-  selectedUserId: undefined,
   fetchUsersStatus: "idle",
+  fetchUserStatus: "idle",
 };
 
 export const usersSlice = createSlice({
   name: "users",
   initialState: initialUsersState,
   selectors: {
-    selectSelectedUserId: (state) => state.selectedUserId,
+    selectUserById: (state, userId: UserId) => state.entities[userId],
     selectSortedUsers: createSelector(
       (state: UsersState) => state.ids,
       (state: UsersState) => state.entities,
@@ -51,17 +51,12 @@ export const usersSlice = createSlice({
             }
           })
     ),
-    selectIsFetchUserPending: (state) => state.fetchUsersStatus === "pending",
-    selectIsFetchUserIdle: (state) => state.fetchUsersStatus === "idle",
+    selectIsFetchUsersPending: (state) => state.fetchUsersStatus === "pending",
+    selectIsFetchUsersIdle: (state) => state.fetchUsersStatus === "idle",
+    selectIsFetchUserPending: (state) => state.fetchUserStatus === "pending",
+    selectIsFetchUserIdle: (state) => state.fetchUserStatus === "idle",
   },
   reducers: {
-    selected: (state, action: PayloadAction<{ userId: UserId }>) => {
-      const { userId } = action.payload;
-      state.selectedUserId = userId;
-    },
-    selectRemove: (state) => {
-      state.selectedUserId = undefined;
-    },
     fetchUsersPending: (state) => {
       state.fetchUsersStatus = "pending";
     },
@@ -78,6 +73,17 @@ export const usersSlice = createSlice({
       }, {} as Record<UserId, User>);
 
       state.ids = users.map((user) => user.id);
+    },
+    fetchUserPending: (state) => {
+      state.fetchUserStatus = "pending";
+    },
+    fetchUserFailed: (state) => {
+      state.fetchUserStatus = "failed";
+    },
+    fetchUserSuccess: (state, action: PayloadAction<{ user: User }>) => {
+      const { user } = action.payload;
+      state.fetchUserStatus = "success";
+      state.entities[user.id] = user;
     },
   },
 });
